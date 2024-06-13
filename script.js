@@ -1,4 +1,4 @@
-const API_URI = "http://localhost:5500";
+const API_URI = "http://localhost:8080";
 
 window.onload = init();
 async function init() {
