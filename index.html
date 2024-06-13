@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="stylesheet" href="style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+    <title>Domain Broker - DS Project</title>
+  </head>
+  <body data-server-no-reload>
+    <header>
+      <div class="wrapper">
+        <div class="navbar">
+          <nav>
+            <a href="index.html">Home</a>
+            <a href="domains.html">Domain List</a>
+            <a href="orders.html">Order List</a>
+            <a href="register.html">Register</a>
+          </nav>
+          <div>
+            <label>UserID:</label>
+            <input class="uid-input" type="text" placeholder="UserID" id="userId">
+            <button id="unsetUserId">Unset</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="wrapper">
+        <div class="header">
+          <h1>Register</h1>
+          <p>Insert your credentials below</p>
+        </div>
+        <div id="main-content">
+            <form id="register-form" method="post">
+                <input class="main-input" type="text" placeholder="Name" name="name" />
+                <input class="main-input" type="text" placeholder="Surname" name="surname" />
+                <input class="main-input" type="text" placeholder="Email" name="email" />
+                <input id="submit-button" class="submit-button" type="submit" value="Register" />
+            </form>
+        </div>
+        <div class="error-box" id="error-box">
+            
+        </div>
+        <div class="success-box" id="success-box" hidden>
+            Your account has been registered. This is your account id:
+            <span style="font-size: 1.4rem; font-weight: 500;">43</span><br>
+            It has been automatically added to the user id field in the navbar. If you want to change it type in it manually the desired user ID.
+        </div>
+    </div>
+
+    <footer>
+      <div class="wrapper">
+        <div class="footer-content">
+          John Doe 123456
+        </div>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+
+        window.onload = function() {
+          /*
+            // Prob should just check localstorage if userId exists then set the text that way.
+            // This was causing issues with location.reload in script.js
+			
+            if (document.getElementById("userId").value != "") {
+                document.getElementById("main-content").style.display = "none";
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "You are already registered. Unset your user id from the navbar to register a new account.";
+                errorBox.style.display = "block";
+            }
+          */
+          if (localStorage.getItem("userId")) {
+            document.getElementById("main-content").style.display = "none";
+            const errorBox = document.getElementById("error-box");
+            errorBox.innerText = "You are already registered. Unset your user id from the navbar to register a new account.";
+            errorBox.style.display = "block";
+          }
+        }
+
+        function getRandomInt(min, max) {
+          min = Math.ceil(min);
+          max = Math.floor(max);
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+        // Mock network call
+        async function mockResponse() {
+          // sleep for 3 seconds before returning response
+          return new Promise(resolve => {
+            setTimeout(() => {
+              const ok = Boolean(getRandomInt(0, 1));
+              const status = [200, 409][getRandomInt(0, 1)]; // randomly select 200 or 409
+              const json = () => ({ id: getRandomInt(1, 1000) });
+              const response = { ok, status, json };
+              resolve(response);
+            }, 3000);
+          });
+        }
+
+        document.getElementById("register-form").addEventListener("submit", async ( event ) => {
+            event.preventDefault();
+
+            const form = document.getElementById("register-form");
+            const formData = new FormData(form);
+
+            const data = {
+                name: formData.get("name"),
+                surname: formData.get("surname"),
+                email: formData.get("email"),
+            }
+            
+            /*
+            const endpoint = `${API_URI}/user`;
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "content-type",
+                    "Sec-Fetch-Dest": "empty",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "same-site"
+                },
+                body: JSON.stringify(data),
+            });
+            */
+
+            const response = await mockResponse();
+
+            console.log(response);
+
+            if(response.ok) {
+                const responseData = await response.json();
+                const userId = responseData.id;
+
+                localStorage.setItem("userId", userId);
+                document.getElementById("userId").value = userId;
+
+                document.getElementById("main-content").style.display = "none";
+                const successBox = document.getElementById("success-box");
+                successBox.querySelector("span").innerText = userId;
+                successBox.style.display = "block";
+            } 
+            else if(response.status == 409) {
+                document.getElementById("main-content").style.display = "none";
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "This email is already registered.";
+                errorBox.style.display = "block";
+            } else {
+                document.getElementById("main-content").style.display = "none";
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "Unknown error.";
+                errorBox.style.display = "block";
+            }
+        })
+    </script>
+  </body>
+</html>
